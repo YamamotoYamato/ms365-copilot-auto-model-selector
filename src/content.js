@@ -32,7 +32,6 @@
     enabled: true,
     targetPath: "GPT, GPT 5.5 Think Deeper",
     urlRules: [
-      { urlIncludes: "/chat/pages", targetPath: "" },
       { urlIncludes: "/chat/agent/new", targetPath: "" },
       { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }
     ],
@@ -66,6 +65,8 @@
     "[role='radio']",
     "[tabindex]"
   ].join(",");
+  const PROMPT_INPUT_SELECTOR =
+    "[role='textbox'],textarea,input[type='text'],[contenteditable='true']";
   const state = {
     config: { ...DEFAULT_CONFIG },
     retryTimerId: null,
@@ -131,6 +132,10 @@
       }))
       .filter((rule) => rule.urlIncludes);
 
+    if (isLegacyDefaultUrlRules(normalizedRules)) {
+      return DEFAULT_CONFIG.urlRules;
+    }
+
     if (normalizedRules.length > 0) {
       return normalizedRules;
     }
@@ -140,6 +145,18 @@
     return urlIncludes
       ? [{ urlIncludes, targetPath }]
       : [];
+  }
+
+  function isLegacyDefaultUrlRules(rules) {
+    return (
+      rules.length === 3 &&
+      rules[0].urlIncludes === "/chat/pages" &&
+      !rules[0].targetPath &&
+      rules[1].urlIncludes === "/chat/agent/new" &&
+      !rules[1].targetPath &&
+      rules[2].urlIncludes === "/chat/agent" &&
+      rules[2].targetPath === "Think Deeper"
+    );
   }
 
   function shouldRunOnThisPage() {
@@ -515,32 +532,46 @@
   }
 
   function findPromptInput() {
-    const candidates = Array.from(
-      document.querySelectorAll(
-        "[role='textbox'],textarea,input[type='text'],[contenteditable='true']"
-      )
-    )
-      .filter(isVisible)
-      .filter((element) => !isDisabled(element))
-      .filter((element) => !isInNavigation(element))
-      .filter((element) => !element.closest("[role='menu'],[role='listbox']"));
+    return (
+      Array.from(document.querySelectorAll(PROMPT_INPUT_SELECTOR)).find(
+        isPromptInputCandidate
+      ) || null
+    );
+  }
 
-    const preferred = candidates.find((element) => {
-      const text = normalize(
-        [
-          element.getAttribute("aria-label"),
-          element.getAttribute("placeholder"),
-          element.getAttribute("data-testid"),
-          element.textContent
-        ]
-          .filter(Boolean)
-          .join(" ")
-      );
+  function isPromptInputCandidate(element) {
+    if (
+      !element ||
+      !isVisible(element) ||
+      isDisabled(element) ||
+      isInNavigation(element) ||
+      element.closest("[role='menu'],[role='listbox']")
+    ) {
+      return false;
+    }
 
-      return text.includes("message copilot") || text.includes("copilot");
-    });
+    return hasPromptInputHint(element) || Boolean(findSendButton(element));
+  }
 
-    return preferred || candidates[0] || null;
+  function hasPromptInputHint(element) {
+    const text = normalize(
+      [
+        element.getAttribute("aria-label"),
+        element.getAttribute("placeholder"),
+        element.getAttribute("aria-placeholder"),
+        element.getAttribute("data-placeholder"),
+        element.getAttribute("data-testid"),
+        element.getAttribute("data-automation-id"),
+        element.getAttribute("title"),
+        element.getAttribute("name"),
+        element.id,
+        element.className
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+
+    return text.includes("copilot");
   }
 
   function resolvePromptInput(target) {
@@ -550,16 +581,8 @@
       return null;
     }
 
-    const candidate = element.closest(
-      "[role='textbox'],textarea,input[type='text'],[contenteditable='true']"
-    );
-    if (!candidate || isInNavigation(candidate)) {
-      return null;
-    }
-
-    return candidate.closest("[role='menu'],[role='listbox']")
-      ? null
-      : candidate;
+    const candidate = element.closest(PROMPT_INPUT_SELECTOR);
+    return isPromptInputCandidate(candidate) ? candidate : null;
   }
 
   function promptHasFocus(input = findPromptInput()) {

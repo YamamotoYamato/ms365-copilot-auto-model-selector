@@ -2,7 +2,6 @@ const DEFAULTS = {
   enabled: true,
   targetPath: "GPT, GPT 5.5 Think Deeper",
   urlRules: [
-    { urlIncludes: "/chat/pages", targetPath: "" },
     { urlIncludes: "/chat/agent/new", targetPath: "" },
     { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }
   ],
@@ -75,6 +74,10 @@ function normalizeUrlRules(settings = {}) {
     }))
     .filter((rule) => rule.urlIncludes);
 
+  if (isLegacyDefaultUrlRules(normalizedRules)) {
+    return DEFAULTS.urlRules;
+  }
+
   if (normalizedRules.length > 0) {
     return normalizedRules;
   }
@@ -82,6 +85,18 @@ function normalizeUrlRules(settings = {}) {
   const urlIncludes = normalizeUrlRuleMatch(settings.urlRuleMatch);
   const targetPath = normalizeTargetPath(settings.urlRuleTargetPath);
   return urlIncludes ? [{ urlIncludes, targetPath }] : [];
+}
+
+function isLegacyDefaultUrlRules(rules) {
+  return (
+    rules.length === 3 &&
+    rules[0].urlIncludes === "/chat/pages" &&
+    !rules[0].targetPath &&
+    rules[1].urlIncludes === "/chat/agent/new" &&
+    !rules[1].targetPath &&
+    rules[2].urlIncludes === "/chat/agent" &&
+    rules[2].targetPath === "Think Deeper"
+  );
 }
 
 function createTextInput(placeholder, datasetKey, value) {

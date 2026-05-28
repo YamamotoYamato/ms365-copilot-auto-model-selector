@@ -142,6 +142,15 @@
       </div>
 
       <div
+        id="noteInput"
+        role="textbox"
+        aria-label="Library note"
+        contenteditable="true"
+        tabindex="0"
+        hidden
+      ></div>
+
+      <div
         id="promptInput"
         role="textbox"
         aria-label="Message Copilot"
@@ -207,6 +216,7 @@
       const compactGptMenu = document.querySelector("#compactGptMenu");
       const result = document.querySelector("#result");
       const params = new URLSearchParams(location.search);
+      const noteInput = document.querySelector("#noteInput");
       const promptInput = document.querySelector("#promptInput");
       const sendButton = document.querySelector("#sendButton");
       const expandTrapButton = document.querySelector("#expandTrapButton");
@@ -235,6 +245,10 @@
         document
           .querySelector("#compactMenu [role='option']")
           .textContent = "自動";
+      }
+
+      if (params.has("genericPrompt")) {
+        promptInput.setAttribute("aria-label", "Ask anything");
       }
 
       historyButtons.forEach((button) => {
@@ -270,6 +284,12 @@
           !event.metaKey
         ) {
           markSent("enter");
+        }
+      });
+
+      noteInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          document.documentElement.dataset.noteEntered = "true";
         }
       });
 
@@ -361,6 +381,12 @@
         document.documentElement.dataset.promptPrefilled = "true";
       }
 
+      if (params.has("note")) {
+        noteInput.hidden = false;
+        noteInput.textContent = "Library note body";
+        noteInput.focus();
+      }
+
       if (params.has("hideSend")) {
         sendButton.hidden = true;
       }
@@ -428,6 +454,18 @@
           );
         }
 
+        function dispatchNoteEnter() {
+          noteInput.focus();
+          noteInput.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "Enter",
+              code: "Enter",
+              bubbles: true,
+              cancelable: true
+            })
+          );
+        }
+
         if (composeParams.has("compose")) {
           promptInput.focus();
           promptInput.dispatchEvent(
@@ -451,6 +489,13 @@
           }
         } else if (composeParams.has("enterAfter")) {
           window.setTimeout(dispatchEnter, Number(composeParams.get("enterAfter")));
+        }
+
+        if (composeParams.has("noteEnterAfter")) {
+          window.setTimeout(
+            dispatchNoteEnter,
+            Number(composeParams.get("noteEnterAfter"))
+          );
         }
       }
     </script>
