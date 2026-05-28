@@ -1,0 +1,5 @@
+*.zip
+.test-server.pid
+.ja-chrome-profile
+.ja-chrome.pid
+test/fixture-result.png

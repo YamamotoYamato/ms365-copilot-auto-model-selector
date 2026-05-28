@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ja" data-ms365-auto-model-fixture="true">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MS365 Copilot Auto Model Selector Fixture</title>
+    <style>
+      body {
+        margin: 0;
+        color: #242424;
+        background: #fafafa;
+        font: 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+      }
+
+      nav {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        min-height: 100vh;
+        padding: 16px;
+        border-right: 1px solid #d1d1d1;
+        background: #ffffff;
+      }
+
+      main {
+        max-width: 720px;
+        margin: 40px auto;
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 18px;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      button {
+        border: 1px solid #8a8886;
+        border-radius: 4px;
+        padding: 8px 12px;
+        color: #242424;
+        background: #ffffff;
+        font: inherit;
+      }
+
+      #modelMenu {
+        display: grid;
+        width: 260px;
+        gap: 4px;
+        border: 1px solid #d1d1d1;
+        border-radius: 6px;
+        padding: 6px;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgb(0 0 0 / 12%);
+      }
+
+      #modelMenu[hidden] {
+        display: none;
+      }
+
+      #compactMenu[hidden],
+      #compactGptMenu[hidden] {
+        display: none;
+      }
+
+      .toolbar[hidden],
+      #compactMore[hidden] {
+        display: none;
+      }
+
+      #gptList[hidden] {
+        display: none;
+      }
+
+      #modelMenu [aria-selected="true"] {
+        border-color: #0f6cbd;
+        background: #ebf3fc;
+      }
+
+      #result {
+        min-height: 22px;
+        font-weight: 600;
+      }
+
+      #promptInput {
+        min-height: 80px;
+        margin-bottom: 18px;
+        border: 1px solid #8a8886;
+        border-radius: 6px;
+        padding: 10px;
+        background: #ffffff;
+      }
+
+      #sendButton {
+        margin-bottom: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav aria-label="Chat history">
+      <button type="button">New chat</button>
+      <button id="historyModel" type="button">Model Inquiry in Japanese</button>
+      <button id="historyTarget" type="button">GPT 5.5 Think Deeper notes</button>
+    </nav>
+
+    <main>
+      <div class="topbar">
+        <button
+          id="compactMore"
+          type="button"
+          aria-label="Settings and more"
+          aria-expanded="false"
+          hidden
+        >
+          ...
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <button
+          id="modelButton"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-label="Model Selector"
+        >
+          Auto
+        </button>
+        <span id="result">Current: Auto</span>
+      </div>
+
+      <div
+        id="promptInput"
+        role="textbox"
+        aria-label="Message Copilot"
+        contenteditable="true"
+        tabindex="0"
+      ></div>
+      <button
+        id="expandTrapButton"
+        type="button"
+        aria-label="[Message Copilot] Expand input box"
+        hidden
+      ></button>
+      <button id="sendButton" type="button" aria-label="Send">Send</button>
+
+      <div id="modelMenu" role="menu" hidden>
+        <button type="button" role="menuitemradio" aria-checked="true">
+          Auto
+        </button>
+        <button type="button" role="menuitemradio">Think Deeper</button>
+        <button
+          id="gptExpander"
+          type="button"
+          role="menuitem"
+          aria-expanded="false"
+        >
+          GPT Open AI
+        </button>
+        <div id="gptList" role="listbox" hidden>
+          <button type="button" role="menuitemradio">GPT 5.4 Quick Response</button>
+          <button type="button" role="menuitemradio">GPT 5.4 Think Deeper</button>
+          <button type="button" role="menuitemradio">GPT 5.5 Quick Response</button>
+          <button type="button" role="menuitemradio">GPT 5.5 Think Deeper</button>
+        </div>
+      </div>
+
+      <div id="compactMenu" role="menu" hidden>
+        <div role="group" aria-label="Model">
+          <button type="button" role="option" aria-selected="true">Auto</button>
+          <button id="compactThink" type="button" role="menuitemradio" hidden>
+            Think Deeper
+          </button>
+          <button id="compactGpt" type="button" role="option">GPT</button>
+        </div>
+      </div>
+
+      <div id="compactGptMenu" role="menu" aria-label="GPT" hidden>
+        <button type="button" role="menuitemradio">GPT 5.4 Quick Response</button>
+        <button type="button" role="menuitemradio">GPT 5.4 Think Deeper</button>
+        <button type="button" role="menuitemradio">GPT 5.5 Quick Response</button>
+        <button type="button" role="menuitemradio">GPT 5.5 Think Deeper</button>
+      </div>
+    </main>
+
+    <script>
+      const modelButton = document.querySelector("#modelButton");
+      const modelMenu = document.querySelector("#modelMenu");
+      const gptExpander = document.querySelector("#gptExpander");
+      const gptList = document.querySelector("#gptList");
+      const compactMore = document.querySelector("#compactMore");
+      const compactMenu = document.querySelector("#compactMenu");
+      const compactThink = document.querySelector("#compactThink");
+      const compactGpt = document.querySelector("#compactGpt");
+      const compactGptMenu = document.querySelector("#compactGptMenu");
+      const result = document.querySelector("#result");
+      const params = new URLSearchParams(location.search);
+      const promptInput = document.querySelector("#promptInput");
+      const sendButton = document.querySelector("#sendButton");
+      const expandTrapButton = document.querySelector("#expandTrapButton");
+      const shouldRevertOnce = params.has("revert");
+      let revertedOnce = false;
+      const historyButtons = [
+        document.querySelector("#historyModel"),
+        document.querySelector("#historyTarget")
+      ];
+
+      if (params.has("jaReal")) {
+        modelButton.textContent = "自動";
+        modelButton.setAttribute("aria-label", "モデル セレクター");
+        compactMore.setAttribute("aria-label", "設定など");
+        promptInput.setAttribute("aria-label", "Copilot にメッセージを送信する");
+        sendButton.textContent = "";
+        sendButton.setAttribute("aria-label", "送信");
+        sendButton.setAttribute("title", "送信");
+        expandTrapButton.setAttribute(
+          "aria-label",
+          "[Copilot にメッセージを送信する] 入力ボックスを展開します"
+        );
+        document
+          .querySelector("#modelMenu [role='menuitemradio']")
+          .textContent = "自動";
+        document
+          .querySelector("#compactMenu [role='option']")
+          .textContent = "自動";
+      }
+
+      historyButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          document.documentElement.dataset.historyClicked = button.id;
+        });
+      });
+
+      promptInput.addEventListener("focus", () => {
+        document.documentElement.dataset.promptFocused = "true";
+      });
+
+      function currentModelName() {
+        return result.textContent.replace(/^Current:\s*/, "");
+      }
+
+      function markSent(source) {
+        document.documentElement.dataset.sentBy = source;
+        document.documentElement.dataset.sentModel = currentModelName();
+      }
+
+      function shortModelName(name) {
+        const match = name.match(/^(GPT\s+\d+(?:\.\d+)?)\s+Think Deeper$/);
+        return match ? `${match[1]} Think` : name;
+      }
+
+      promptInput.addEventListener("keydown", (event) => {
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey &&
+          !event.ctrlKey &&
+          !event.altKey &&
+          !event.metaKey
+        ) {
+          markSent("enter");
+        }
+      });
+
+      sendButton.addEventListener("click", () => {
+        markSent("button");
+      });
+
+      expandTrapButton.addEventListener("click", () => {
+        document.documentElement.dataset.expandTrapClicked = "true";
+      });
+
+      modelButton.addEventListener("click", () => {
+        const nextOpen = modelMenu.hidden;
+        modelMenu.hidden = !nextOpen;
+        modelButton.setAttribute("aria-expanded", String(nextOpen));
+      });
+
+      gptExpander.addEventListener("click", () => {
+        gptList.hidden = false;
+        gptExpander.setAttribute("aria-expanded", "true");
+      });
+
+      compactMore.addEventListener("click", () => {
+        const nextOpen = compactMenu.hidden;
+        compactMenu.hidden = !nextOpen;
+        compactMore.setAttribute("aria-expanded", String(nextOpen));
+      });
+
+      compactGpt.addEventListener("click", () => {
+        compactGptMenu.hidden = false;
+      });
+
+      document.querySelectorAll("[role='menuitemradio']").forEach((option) => {
+        option.addEventListener("click", () => {
+          document.querySelectorAll("[role='menuitemradio']").forEach((item) => {
+            item.setAttribute("aria-selected", "false");
+            item.setAttribute("aria-checked", "false");
+          });
+          option.setAttribute("aria-selected", "true");
+          option.setAttribute("aria-checked", "true");
+          modelButton.textContent = shortModelName(option.textContent.trim());
+          if (!params.has("compactStaticMore")) {
+            compactMore.textContent = modelButton.textContent;
+          }
+          result.textContent = `Current: ${option.textContent.trim()}`;
+          modelMenu.hidden = true;
+          gptList.hidden = true;
+          compactMenu.hidden = true;
+          compactGptMenu.hidden = true;
+          gptExpander.setAttribute("aria-expanded", "false");
+          modelButton.setAttribute("aria-expanded", "false");
+          compactMore.setAttribute("aria-expanded", "false");
+
+          if (
+            shouldRevertOnce &&
+            !revertedOnce &&
+            option.textContent.trim() === "GPT 5.5 Think Deeper"
+          ) {
+            revertedOnce = true;
+            window.setTimeout(() => {
+              document.querySelectorAll("[role='menuitemradio']").forEach((item) => {
+                item.setAttribute("aria-selected", "false");
+                item.setAttribute("aria-checked", "false");
+              });
+              document
+                .querySelector("#modelMenu [role='menuitemradio']")
+                .setAttribute("aria-checked", "true");
+              modelButton.textContent = "Auto";
+              compactMore.textContent = "...";
+              result.textContent = "Current: Auto";
+              document.documentElement.dataset.revertedOnce = "true";
+            }, 300);
+          }
+        });
+      });
+
+      if (params.has("compact")) {
+        document.querySelector(".toolbar").hidden = true;
+        compactMore.hidden = false;
+      }
+
+      if (params.has("compactDirectThink")) {
+        compactThink.hidden = false;
+      }
+
+      if (params.has("prefill")) {
+        promptInput.textContent = "こんにちは";
+        promptInput.focus();
+        document.documentElement.dataset.promptPrefilled = "true";
+      }
+
+      if (params.has("hideSend")) {
+        sendButton.hidden = true;
+      }
+
+      if (params.has("expandTrap")) {
+        expandTrapButton.hidden = false;
+      }
+
+    </script>
+    <script>
+      {
+        const configParams = new URLSearchParams(location.search);
+        const configOverrides = {};
+
+        if (configParams.has("targetPath")) {
+          configOverrides.targetPath = configParams.get("targetPath");
+        }
+
+        if (configParams.has("urlRules")) {
+          configOverrides.urlRules = JSON.parse(configParams.get("urlRules"));
+        }
+
+        if (configParams.has("urlRuleMatch")) {
+          configOverrides.urlRuleMatch = configParams.get("urlRuleMatch");
+        }
+
+        if (configParams.has("urlRuleTargetPath")) {
+          configOverrides.urlRuleTargetPath =
+            configParams.get("urlRuleTargetPath");
+        }
+
+        if (configParams.has("restorePromptFocus")) {
+          configOverrides.restorePromptFocus =
+            configParams.get("restorePromptFocus") !== "0";
+        }
+
+        if (Object.keys(configOverrides).length > 0) {
+          window.chrome = {
+            storage: {
+              sync: {
+                get(defaults, callback) {
+                  callback({
+                    ...defaults,
+                    ...configOverrides
+                  });
+                }
+              },
+              onChanged: {
+                addListener() {}
+              }
+            }
+          };
+        }
+      }
+    </script>
+    <script src="../src/content.js"></script>
+    <script>
+      {
+        const composeParams = new URLSearchParams(location.search);
+
+        function dispatchEnter() {
+          promptInput.focus();
+          promptInput.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "Enter",
+              code: "Enter",
+              bubbles: true,
+              cancelable: true
+            })
+          );
+        }
+
+        if (composeParams.has("compose")) {
+          promptInput.focus();
+          promptInput.dispatchEvent(
+            new CompositionEvent("compositionstart", { bubbles: true })
+          );
+          document.documentElement.dataset.compositionStarted = "true";
+
+          if (composeParams.has("composeEndAfter")) {
+            window.setTimeout(() => {
+              promptInput.dispatchEvent(
+                new CompositionEvent("compositionend", { bubbles: true })
+              );
+              document.documentElement.dataset.compositionEnded = "true";
+              if (composeParams.has("enterAfter")) {
+                window.setTimeout(
+                  dispatchEnter,
+                  Number(composeParams.get("enterAfter"))
+                );
+              }
+            }, Number(composeParams.get("composeEndAfter")));
+          }
+        } else if (composeParams.has("enterAfter")) {
+          window.setTimeout(dispatchEnter, Number(composeParams.get("enterAfter")));
+        }
+      }
+    </script>
+  </body>
+</html>

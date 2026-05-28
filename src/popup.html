@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MS365 Copilot Auto Model Selector</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header class="header">
+        <div>
+          <p class="eyebrow">Microsoft 365 Copilot</p>
+          <h1>Auto Model Selector</h1>
+        </div>
+      </header>
+
+      <section class="section" aria-label="動作設定">
+        <label class="switch" data-help="Copilot Chatの送信時に、指定モデルの選択を挟みます。">
+          <span class="switch-text">送信時選択を有効化</span>
+          <input id="enabled" type="checkbox">
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+
+        <label class="switch" data-help="モデル選択と送信が終わった後に、入力欄へフォーカスを戻します。">
+          <span class="switch-text">送信後に入力欄へフォーカス</span>
+          <input id="restorePromptFocus" type="checkbox">
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+      </section>
+
+      <section class="section" aria-label="モデル設定">
+        <label class="field" data-help="クリックする項目をカンマ区切りで順番に指定します。例: GPT, GPT 5.5 Think Deeper">
+          <span>選択順</span>
+          <input id="targetPath" type="text" autocomplete="off" placeholder="GPT, GPT 5.5 Think Deeper">
+        </label>
+      </section>
+
+      <section class="section" aria-label="URL別モデル設定">
+        <div class="section-heading">
+          <div>
+            <h2>URL別ルール</h2>
+            <p>上から順に判定し、最初に一致した選択順を使います。</p>
+          </div>
+          <button id="addUrlRule" type="button" data-help="URL別ルールを1行追加します。">追加</button>
+        </div>
+
+        <div id="urlRules" class="rule-list" aria-label="URL別ルール一覧"></div>
+      </section>
+
+      <aside class="help-panel" aria-live="polite">
+        <span>説明</span>
+        <p id="helpText">項目にカーソルを合わせると説明を表示します。</p>
+      </aside>
+
+      <div class="actions">
+        <button id="save" class="primary" type="button" data-help="現在の設定を保存します。">保存</button>
+        <button id="reset" type="button" data-help="設定を既定値に戻します。">初期値</button>
+      </div>
+
+      <p id="status" role="status"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
