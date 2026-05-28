@@ -190,6 +190,12 @@ button:focus-visible {
   margin-top: 0;
 }
 
+.rule-actions {
+  display: grid;
+  gap: 6px;
+  min-width: 56px;
+}
+
 input[type="text"],
 input[type="number"] {
   width: 100%;
@@ -238,7 +244,7 @@ input[type="number"]:hover {
 
 .actions {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-bottom: 4px;
 }
@@ -264,15 +270,11 @@ button:active {
   transform: translateY(1px);
 }
 
-button.primary {
-  border-color: var(--accent);
-  color: #ffffff;
-  background: var(--accent);
-}
-
-button.primary:hover {
-  border-color: var(--accent-strong);
-  background: var(--accent-strong);
+button:disabled {
+  color: #8b949e;
+  background: #eef1f4;
+  cursor: default;
+  transform: none;
 }
 
 button.danger {
@@ -285,8 +287,24 @@ button.danger:hover {
 }
 
 #status {
-  min-height: 18px;
-  margin: -2px 2px 0;
+  position: fixed;
+  top: 10px;
+  right: 14px;
+  left: 14px;
+  z-index: 10;
+  min-height: 0;
+  margin: 0;
+  border: 1px solid #badbcc;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #eaf7f2;
   color: var(--success);
   font-size: 12px;
+  font-weight: 650;
+  box-shadow: 0 10px 26px rgba(20, 35, 54, 0.16);
+  pointer-events: none;
+}
+
+#status:empty {
+  display: none;
 }

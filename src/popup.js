@@ -1,14 +1,16 @@
 const DEFAULTS = {
   enabled: true,
-  restorePromptFocus: true,
   targetPath: "GPT, GPT 5.5 Think Deeper",
-  urlRules: [{ urlIncludes: "/agent/", targetPath: "Think Deeper" }],
+  urlRules: [
+    { urlIncludes: "/chat/pages", targetPath: "" },
+    { urlIncludes: "/chat/agent/new", targetPath: "" },
+    { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }
+  ],
   urlRuleMatch: "",
   urlRuleTargetPath: ""
 };
 
 const enabledInput = document.querySelector("#enabled");
-const restorePromptFocusInput = document.querySelector("#restorePromptFocus");
 const targetPathInput = document.querySelector("#targetPath");
 const urlRulesList = document.querySelector("#urlRules");
 const addUrlRuleButton = document.querySelector("#addUrlRule");
@@ -16,15 +18,39 @@ const helpText = document.querySelector("#helpText");
 const statusText = document.querySelector("#status");
 const storage = globalThis.chrome?.storage?.sync;
 const DEFAULT_HELP = helpText?.textContent || "";
+const SETTINGS_AUTO_SAVE_DELAY_MS = 250;
+const STATUS_CLEAR_DELAY_MS = 2500;
+const ERROR_STATUS_CLEAR_DELAY_MS = 6000;
+let settingsAutoSaveTimerId = null;
+let statusClearTimerId = null;
+let saveRequestId = 0;
 
-function setStatus(message) {
+function setStatus(message, { persistMs = STATUS_CLEAR_DELAY_MS } = {}) {
+  if (statusClearTimerId) {
+    clearTimeout(statusClearTimerId);
+    statusClearTimerId = null;
+  }
+
   statusText.textContent = message;
+
+  if (!message || persistMs <= 0) {
+    return;
+  }
+
+  statusClearTimerId = setTimeout(() => {
+    statusText.textContent = "";
+    statusClearTimerId = null;
+  }, persistMs);
 }
 
 function setHelp(message = DEFAULT_HELP) {
   if (helpText) {
     helpText.textContent = message;
   }
+}
+
+function getStorageError() {
+  return globalThis.chrome?.runtime?.lastError;
 }
 
 function normalizeTargetPath(value) {
@@ -88,7 +114,7 @@ function createUrlRuleRow(rule = {}) {
   fields.className = "rule-fields";
 
   const urlInput = createTextInput(
-    "例: /agent/ など",
+    "例: /chat/agent など",
     "urlRuleMatch",
     rule.urlIncludes || ""
   );
@@ -118,14 +144,30 @@ function createUrlRuleRow(rule = {}) {
   removeButton.dataset.help = "このURL別ルールを削除します。";
   removeButton.textContent = "削除";
 
-  row.append(fields, removeButton);
+  const moveUpButton = document.createElement("button");
+  moveUpButton.type = "button";
+  moveUpButton.dataset.moveUrlRule = "up";
+  moveUpButton.dataset.help = "このURL別ルールを1つ上に移動します。";
+  moveUpButton.textContent = "上へ";
+
+  const moveDownButton = document.createElement("button");
+  moveDownButton.type = "button";
+  moveDownButton.dataset.moveUrlRule = "down";
+  moveDownButton.dataset.help = "このURL別ルールを1つ下に移動します。";
+  moveDownButton.textContent = "下へ";
+
+  const actions = document.createElement("div");
+  actions.className = "rule-actions";
+  actions.append(moveUpButton, moveDownButton, removeButton);
+
+  row.append(fields, actions);
   return row;
 }
 
 function addUrlRuleRow(rule = {}) {
   const row = createUrlRuleRow(rule);
   urlRulesList.append(row);
-  updateRemoveButtons();
+  updateRuleButtons();
   return row;
 }
 
@@ -134,17 +176,30 @@ function renderUrlRules(rules) {
 
   const rows = rules.length > 0 ? rules : [{}];
   rows.forEach((rule) => addUrlRuleRow(rule));
-  updateRemoveButtons();
+  updateRuleButtons();
 }
 
-function updateRemoveButtons() {
+function updateRuleButtons() {
   const rows = Array.from(urlRulesList.querySelectorAll(".rule-row"));
-  const shouldShowRemove = rows.length > 1;
+  const shouldShowActions = rows.length > 1;
 
-  rows.forEach((row) => {
+  rows.forEach((row, index) => {
+    const moveUpButton = row.querySelector("[data-move-url-rule='up']");
+    const moveDownButton = row.querySelector("[data-move-url-rule='down']");
     const removeButton = row.querySelector("[data-remove-url-rule]");
+
+    if (moveUpButton) {
+      moveUpButton.hidden = !shouldShowActions;
+      moveUpButton.disabled = index === 0;
+    }
+
+    if (moveDownButton) {
+      moveDownButton.hidden = !shouldShowActions;
+      moveDownButton.disabled = index === rows.length - 1;
+    }
+
     if (removeButton) {
-      removeButton.hidden = !shouldShowRemove;
+      removeButton.hidden = !shouldShowActions;
     }
   });
 }
@@ -178,10 +233,88 @@ function readUrlRules() {
   return rules;
 }
 
+function clearSettingsAutoSaveTimer() {
+  if (settingsAutoSaveTimerId) {
+    clearTimeout(settingsAutoSaveTimerId);
+    settingsAutoSaveTimerId = null;
+  }
+}
+
+function saveToStorage(values, { onSuccess, successMessage, localMessage }) {
+  if (!storage) {
+    if (onSuccess) {
+      onSuccess();
+    }
+    setStatus(localMessage);
+    return;
+  }
+
+  const requestId = ++saveRequestId;
+  storage.set(values, () => {
+    if (requestId !== saveRequestId) {
+      return;
+    }
+
+    const error = getStorageError();
+    if (error) {
+      setStatus(`保存できませんでした: ${error.message}`, {
+        persistMs: ERROR_STATUS_CLEAR_DELAY_MS
+      });
+      return;
+    }
+
+    if (onSuccess) {
+      onSuccess();
+    }
+    setStatus(successMessage);
+  });
+}
+
+function collectSettings() {
+  const targetPath =
+    normalizeTargetPath(targetPathInput.value) || DEFAULTS.targetPath;
+  const urlRules = readUrlRules();
+
+  if (!urlRules) {
+    return null;
+  }
+
+  return {
+    enabled: enabledInput.checked,
+    targetPath,
+    urlRules,
+    urlRuleMatch: "",
+    urlRuleTargetPath: ""
+  };
+}
+
+function saveSettings({
+  renderAfterSave = true,
+  successMessage = "保存しました。開いているCopilotタブにも反映されます。"
+} = {}) {
+  clearSettingsAutoSaveTimer();
+  const settings = collectSettings();
+
+  if (!settings) {
+    return false;
+  }
+
+  saveToStorage(settings, {
+    onSuccess() {
+      if (renderAfterSave) {
+        targetPathInput.value = settings.targetPath;
+        renderUrlRules(settings.urlRules);
+      }
+    },
+    successMessage,
+    localMessage: "ローカル表示です。拡張として開くと保存できます。"
+  });
+  return true;
+}
+
 function loadSettings() {
   if (!storage) {
     enabledInput.checked = DEFAULTS.enabled;
-    restorePromptFocusInput.checked = DEFAULTS.restorePromptFocus;
     targetPathInput.value = DEFAULTS.targetPath;
     renderUrlRules(DEFAULTS.urlRules);
     return;
@@ -189,7 +322,6 @@ function loadSettings() {
 
   storage.get(DEFAULTS, (settings) => {
     enabledInput.checked = Boolean(settings.enabled);
-    restorePromptFocusInput.checked = settings.restorePromptFocus !== false;
     targetPathInput.value = normalizeTargetPath(
       settings.targetPath || DEFAULTS.targetPath
     );
@@ -197,54 +329,61 @@ function loadSettings() {
   });
 }
 
-function saveSettings() {
-  const targetPath =
-    normalizeTargetPath(targetPathInput.value) || DEFAULTS.targetPath;
-  const urlRules = readUrlRules();
-
-  if (!urlRules) {
-    return;
-  }
-
-  if (!storage) {
-    targetPathInput.value = targetPath;
-    renderUrlRules(urlRules);
-    setStatus("ローカル表示です。拡張として開くと保存できます。");
-    return;
-  }
-
-  storage.set(
-    {
-      enabled: enabledInput.checked,
-      restorePromptFocus: restorePromptFocusInput.checked,
-      targetPath,
-      urlRules,
-      urlRuleMatch: "",
-      urlRuleTargetPath: ""
-    },
-    () => {
-      targetPathInput.value = targetPath;
-      renderUrlRules(urlRules);
-      setStatus("保存しました。開いているCopilotタブにも反映されます。");
-    }
-  );
+function saveSettingsNow() {
+  return saveSettings({
+    renderAfterSave: false,
+    successMessage: "自動保存しました。"
+  });
 }
 
-document.querySelector("#save").addEventListener("click", saveSettings);
+function scheduleSettingsAutoSave() {
+  clearSettingsAutoSaveTimer();
+  settingsAutoSaveTimerId = setTimeout(() => {
+    settingsAutoSaveTimerId = null;
+    saveSettingsNow();
+  }, SETTINGS_AUTO_SAVE_DELAY_MS);
+}
+
 document.querySelector("#reset").addEventListener("click", () => {
   enabledInput.checked = DEFAULTS.enabled;
-  restorePromptFocusInput.checked = DEFAULTS.restorePromptFocus;
   targetPathInput.value = DEFAULTS.targetPath;
   renderUrlRules(DEFAULTS.urlRules);
-  saveSettings();
+  saveSettings({
+    successMessage: "初期値に戻して保存しました。"
+  });
+});
+
+enabledInput.addEventListener("change", saveSettingsNow);
+targetPathInput.addEventListener("input", scheduleSettingsAutoSave);
+targetPathInput.addEventListener("change", () => {
+  saveSettings({
+    successMessage: "自動保存しました。"
+  });
 });
 
 addUrlRuleButton.addEventListener("click", () => {
   const row = addUrlRuleRow();
   row.querySelector("[data-url-rule-match]")?.focus();
+  saveSettingsNow();
 });
 
 urlRulesList.addEventListener("click", (event) => {
+  const moveButton = event.target.closest("[data-move-url-rule]");
+  if (moveButton) {
+    const row = moveButton.closest(".rule-row");
+    if (moveButton.dataset.moveUrlRule === "up" && row?.previousElementSibling) {
+      urlRulesList.insertBefore(row, row.previousElementSibling);
+    }
+
+    if (moveButton.dataset.moveUrlRule === "down" && row?.nextElementSibling) {
+      urlRulesList.insertBefore(row.nextElementSibling, row);
+    }
+
+    updateRuleButtons();
+    saveSettingsNow();
+    return;
+  }
+
   const removeButton = event.target.closest("[data-remove-url-rule]");
   if (!removeButton) {
     return;
@@ -254,7 +393,28 @@ urlRulesList.addEventListener("click", (event) => {
   if (!urlRulesList.children.length) {
     addUrlRuleRow();
   }
-  updateRemoveButtons();
+  updateRuleButtons();
+  saveSettingsNow();
+});
+
+urlRulesList.addEventListener("input", (event) => {
+  if (
+    event.target.matches(
+      "[data-url-rule-match], [data-url-rule-target-path]"
+    )
+  ) {
+    scheduleSettingsAutoSave();
+  }
+});
+
+urlRulesList.addEventListener("change", (event) => {
+  if (
+    event.target.matches(
+      "[data-url-rule-match], [data-url-rule-target-path]"
+    )
+  ) {
+    saveSettingsNow();
+  }
 });
 
 document.addEventListener("mouseover", (event) => {

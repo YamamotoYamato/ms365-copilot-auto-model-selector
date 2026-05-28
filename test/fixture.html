@@ -392,11 +392,6 @@
             configParams.get("urlRuleTargetPath");
         }
 
-        if (configParams.has("restorePromptFocus")) {
-          configOverrides.restorePromptFocus =
-            configParams.get("restorePromptFocus") !== "0";
-        }
-
         if (Object.keys(configOverrides).length > 0) {
           window.chrome = {
             storage: {

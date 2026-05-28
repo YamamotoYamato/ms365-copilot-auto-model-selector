@@ -21,12 +21,6 @@
           <input id="enabled" type="checkbox">
           <span class="switch-track" aria-hidden="true"></span>
         </label>
-
-        <label class="switch" data-help="モデル選択と送信が終わった後に、入力欄へフォーカスを戻します。">
-          <span class="switch-text">送信後に入力欄へフォーカス</span>
-          <input id="restorePromptFocus" type="checkbox">
-          <span class="switch-track" aria-hidden="true"></span>
-        </label>
       </section>
 
       <section class="section" aria-label="モデル設定">
@@ -40,7 +34,7 @@
         <div class="section-heading">
           <div>
             <h2>URL別ルール</h2>
-            <p>上から順に判定し、最初に一致した選択順を使います。</p>
+            <p>上から順に判定し、上へ/下へで並べ替えできます。</p>
           </div>
           <button id="addUrlRule" type="button" data-help="URL別ルールを1行追加します。">追加</button>
         </div>
@@ -54,8 +48,7 @@
       </aside>
 
       <div class="actions">
-        <button id="save" class="primary" type="button" data-help="現在の設定を保存します。">保存</button>
-        <button id="reset" type="button" data-help="設定を既定値に戻します。">初期値</button>
+        <button id="reset" type="button" data-help="設定を既定値に戻して保存します。">初期値に戻す</button>
       </div>
 
       <p id="status" role="status"></p>

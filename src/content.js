@@ -3,7 +3,6 @@
 
   const EXTENSION_NAME = "MS365 Copilot Auto Model Selector";
   const NEXT_STEP_DELAY_MS = 0;
-  const VERIFY_DELAY_MS = 0;
   const CLICK_COOLDOWN_MS = 0;
   const PENDING_SEND_RETRY_MS = 50;
   const SEND_BUTTON_HINTS = [
@@ -31,9 +30,12 @@
   ];
   const DEFAULT_CONFIG = {
     enabled: true,
-    restorePromptFocus: true,
     targetPath: "GPT, GPT 5.5 Think Deeper",
-    urlRules: [{ urlIncludes: "/agent/", targetPath: "Think Deeper" }],
+    urlRules: [
+      { urlIncludes: "/chat/pages", targetPath: "" },
+      { urlIncludes: "/chat/agent/new", targetPath: "" },
+      { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }
+    ],
     urlRuleMatch: "",
     urlRuleTargetPath: "",
     pickerHints: [
@@ -808,38 +810,6 @@
     startSendGuard("click");
   }
 
-  function focusPromptInput() {
-    const input = findPromptInput();
-    if (!input) {
-      return false;
-    }
-
-    if (typeof input.focus === "function") {
-      input.focus({ preventScroll: true });
-    }
-
-    if (
-      document.activeElement !== input &&
-      !input.contains(document.activeElement)
-    ) {
-      input.click();
-    }
-
-    return (
-      document.activeElement === input || input.contains(document.activeElement)
-    );
-  }
-
-  function schedulePromptFocus() {
-    if (!state.config.restorePromptFocus) {
-      return;
-    }
-
-    const firstDelay = Math.max(VERIFY_DELAY_MS, 50);
-    window.setTimeout(focusPromptInput, firstDelay);
-    window.setTimeout(focusPromptInput, firstDelay + 200);
-  }
-
   function scheduleCooldownRetry(reason) {
     const cooldown = CLICK_COOLDOWN_MS;
     if (cooldown <= 0) {
@@ -890,10 +860,9 @@
       const option = findVisibleTargetOption();
       if (option && clickElement(option, "clicked target option")) {
         markTargetClickedForPendingSend();
-        schedulePromptFocus();
         window.setTimeout(
           completePendingSend,
-          Math.max(VERIFY_DELAY_MS, CLICK_COOLDOWN_MS)
+          CLICK_COOLDOWN_MS
         );
         return;
       }
