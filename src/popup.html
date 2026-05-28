@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,40 +15,46 @@
         </div>
       </header>
 
-      <section class="section" aria-label="動作設定">
-        <label class="switch" data-help="Copilot Chatの送信時に、指定モデルの選択を挟みます。">
-          <span class="switch-text">送信時選択を有効化</span>
+      <section id="behaviorSection" class="section" aria-label="Behavior settings">
+        <label id="languageField" class="switch" data-help="">
+          <span id="languageLabel" class="switch-text">Use Japanese UI</span>
+          <input id="uiLanguage" type="checkbox">
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+
+        <label id="enabledField" class="switch" data-help="">
+          <span id="enabledLabel" class="switch-text">Enable automatic selection</span>
           <input id="enabled" type="checkbox">
           <span class="switch-track" aria-hidden="true"></span>
         </label>
       </section>
 
-      <section class="section" aria-label="モデル設定">
-        <label class="field" data-help="クリックする項目をカンマ区切りで順番に指定します。例: GPT, GPT 5.5 Think Deeper">
-          <span>選択順</span>
+      <section id="modelSection" class="section" aria-label="Model settings">
+        <label id="targetPathField" class="field" data-help="">
+          <span id="targetPathLabel">Selection path</span>
           <input id="targetPath" type="text" autocomplete="off" placeholder="GPT, GPT 5.5 Think Deeper">
         </label>
       </section>
 
-      <section class="section" aria-label="URL別モデル設定">
+      <section id="urlRulesSection" class="section" aria-label="URL-specific model settings">
         <div class="section-heading">
           <div>
-            <h2>URL別ルール</h2>
-            <p>上から順に判定し、上へ/下へで並べ替えできます。</p>
+            <h2 id="urlRulesTitle">URL rules</h2>
+            <p id="urlRulesDescription">Rules are evaluated from top to bottom. Use Up/Down to reorder them.</p>
           </div>
-          <button id="addUrlRule" type="button" data-help="URL別ルールを1行追加します。">追加</button>
+          <button id="addUrlRule" type="button" data-help="">Add</button>
         </div>
 
-        <div id="urlRules" class="rule-list" aria-label="URL別ルール一覧"></div>
+        <div id="urlRules" class="rule-list" aria-label="URL rules"></div>
       </section>
 
       <aside class="help-panel" aria-live="polite">
-        <span>説明</span>
-        <p id="helpText">項目にカーソルを合わせると説明を表示します。</p>
+        <span id="helpTitle">Description</span>
+        <p id="helpText">Hover over an item to show its description.</p>
       </aside>
 
       <div class="actions">
-        <button id="reset" type="button" data-help="設定を既定値に戻して保存します。">初期値に戻す</button>
+        <button id="reset" type="button" data-help="">Reset to defaults</button>
       </div>
 
       <p id="status" role="status"></p>

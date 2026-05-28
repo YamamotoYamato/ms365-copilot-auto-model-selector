@@ -1,42 +1,48 @@
 # MS365 Copilot Auto Model Selector
 
-Microsoft 365 Copilot Chatで送信操作をした時に、指定モデルを選択してから送信するChrome拡張です。既定では`GPT 5.5 Think Deeper`を選択します。
+[日本語](README_JA.md)
 
-## インストール
+A Chrome extension that selects your preferred model right before sending a message in Microsoft 365 Copilot Chat. By default, it selects `GPT 5.5 Think Deeper`.
 
-1. [Releases](https://github.com/YamamotoYamato/ms365-copilot-auto-model-selector/releases)から最新版のzipをダウンロードして展開する
-2. Chromeで`chrome://extensions`を開く
-3. 右上の`デベロッパー モード`を有効にする
-4. `パッケージ化されていない拡張機能を読み込む`から、展開した`ms365-copilot-auto-model-selector`フォルダを選択する
+## Supported Languages
 
-## 使い方
+The extension is designed for Microsoft 365 Copilot Chat in English and Japanese. The extension popup UI also supports English and Japanese, and can be switched from the popup.
 
-1. `https://m365.cloud.microsoft/chat/`を開く
-2. Microsoft 365にログインする
-3. 通常どおりメッセージを書いて送信する
-4. 拡張が送信を一時保持し、モデルメニューで指定モデルを選択してから送信する
+## Installation
 
-ページ表示時やDOM変更時の自動選択は行いません。通常幅でも狭幅でも、モデル選択のタイミングは送信直前だけです。
+1. Download and extract the latest zip from [Releases](https://github.com/YamamotoYamato/ms365-copilot-auto-model-selector/releases).
+2. Open `chrome://extensions` in Chrome.
+3. Enable `Developer mode`.
+4. Click `Load unpacked` and select the extracted `ms365-copilot-auto-model-selector` folder.
 
-モデルの選択順が変わった場合は、拡張アイコンのポップアップから変更できます。たとえば`GPT, GPT 5.5 Think Deeper`のように、クリックする項目をカンマ区切りで順番に指定します。`Think Deeper`のような直下項目は、その名前だけを指定します。
+## Usage
 
-特定のURLだけ別モデルを使いたい場合は、ポップアップの`URL別ルール`を設定します。現在のURLに指定した文字列が含まれる時だけ、既定の`選択順`の代わりにURL別の選択順を使います。複数ある場合は上から順に判定し、最初に一致したルールを使います。ルールは上へ/下へボタンで並べ替えできます。既定では`/chat/agent/new`を含むURLでモデルの自動選択を無効にし、`/chat/agent`を含むURLで`Think Deeper`を選択します。`URL別の選択順`を空にしたルールは、そのURLでモデルの自動選択を無効にします。
+1. Open `https://m365.cloud.microsoft/chat/`.
+2. Sign in to Microsoft 365.
+3. Write and send a message as usual.
+4. The extension temporarily holds the send action, selects the configured model from the model menu, then sends the message.
 
-拡張を更新した場合は、`chrome://extensions`でこの拡張を再読み込みしてから、Copilot Chatのタブも再読み込みしてください。
+The extension does not select a model on page load or DOM changes. In both wide and narrow layouts, model selection runs only immediately before sending.
 
-## メモ
+If the model menu path changes, update it from the extension popup. Specify click targets in order, separated by commas, such as `GPT, GPT 5.5 Think Deeper`. For a direct item such as `Think Deeper`, specify only that name.
 
-- 権限は`https://m365.cloud.microsoft/*`と`storage`だけです。
-- プロンプトや会話内容は外部へ送信しません。送信時モデル選択のため、入力欄が空でないかだけをローカルで判定します。
-- 入力欄でIME変換中の場合は、変換を邪魔しないよう送信保持を行いません。
-- 対象モデルをクリックできない場合は、Autoのまま送信しないように送信保持を継続します。解除する場合はページを再読み込みしてください。
-- ポップアップから、送信時選択の有効化、既定の選択順、URL別の選択順を変更できます。変更内容は自動保存されます。
-- Microsoft側のUI変更に備えて、固定セレクタではなく表示テキスト、ARIA属性、開いているメニューの状態から選択対象を探します。
+To use a different model for specific URLs, configure `URL別ルール` in the popup. When the current URL contains the configured text, the URL-specific selection path is used instead of the default `選択順`. Rules are evaluated from top to bottom, and the first matching rule is used. Rules can be reordered with the up/down buttons. By default, URLs containing `/chat/agent/new` disable automatic model selection, and URLs containing `/chat/agent` select `Think Deeper`. Leaving `URL別の選択順` empty disables automatic model selection for that URL.
 
-## ライセンス
+After updating the extension, reload it in `chrome://extensions`, then reload the Copilot Chat tab.
 
-Unlicenseです。詳しくは`LICENSE`を参照してください。
+## Notes
 
-## 更新履歴
+- Permissions are limited to `https://m365.cloud.microsoft/*` and `storage`.
+- Prompts and conversation content are not sent externally. The extension only checks locally whether the input box is non-empty before send-time model selection.
+- When IME composition is active in the input box, the extension does not hold the send action, so conversion is not interrupted.
+- If the target model cannot be clicked, the extension keeps holding the send action so the message is not sent as Auto. Reload the page to cancel this state.
+- The popup can configure automatic selection, the default selection path, and URL-specific selection paths. Changes are saved automatically.
+- To tolerate Microsoft UI changes, the extension looks for targets using visible text, ARIA attributes, and open menu state instead of fixed selectors.
 
-更新履歴は`CHANGELOG.md`を参照してください。
+## License
+
+This project is released under the Unlicense. See `LICENSE` for details.
+
+## Changelog
+
+See `CHANGELOG.md`.
