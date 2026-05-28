@@ -106,7 +106,7 @@ function createUrlRuleRow(rule = {}) {
     ),
     createField(
       "URL別の選択順",
-      "URLに含む文字列が一致した時に使う選択順です。空にすると、そのURLでは自動選択しません。",
+      "URLに含む文字列が一致した時に使う選択順です。空にすると、そのURLでは自動選択が無効になります。",
       pathInput
     )
   );

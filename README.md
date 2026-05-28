@@ -4,15 +4,10 @@ Microsoft 365 Copilot Chatで送信操作をした時に、指定モデルを選
 
 ## インストール
 
-1. Chromeで`chrome://extensions`を開く
-2. 右上の`デベロッパー モード`を有効にする
-3. `パッケージ化されていない拡張機能を読み込む`から、このフォルダを選択する
-
-フォルダ:
-
-```text
-C:\Users\me\ms365-copilot-send-time-model
-```
+1. [Releases](https://github.com/YamamotoYamato/ms365-copilot-auto-model-selector/releases)から最新版のzipをダウンロードして展開する
+2. Chromeで`chrome://extensions`を開く
+3. 右上の`デベロッパー モード`を有効にする
+4. `パッケージ化されていない拡張機能を読み込む`から、展開した`ms365-copilot-auto-model-selector`フォルダを選択する
 
 ## 使い方
 
