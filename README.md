@@ -41,7 +41,7 @@ After updating the extension, reload it in `chrome://extensions`, then reload th
 
 ## License
 
-This project is released under the Unlicense. See `LICENSE` for details.
+This project is released under the MIT License. See `LICENSE` for details.
 
 ## Changelog
 

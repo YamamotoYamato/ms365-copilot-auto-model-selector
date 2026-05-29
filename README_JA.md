@@ -41,7 +41,7 @@ Microsoft 365 Copilot Chatの英語UIと日本語UIに対応しています。�
 
 ## ライセンス
 
-Unlicenseです。詳しくは`LICENSE`を参照してください。
+MIT Licenseです。詳しくは`LICENSE`を参照してください。
 
 ## 更新履歴
 
