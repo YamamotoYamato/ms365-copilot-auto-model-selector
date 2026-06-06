@@ -527,8 +527,40 @@
       getVisibleInteractiveElements("button,[role='button']")
         .filter((element) => !isInNavigation(element))
         .filter((element) => element.getAttribute("aria-expanded") !== "true")
-        .find(isOverflowMenuButtonCandidate) || null
+        .filter(isOverflowMenuButtonCandidate)
+        .map((element) => ({
+          element,
+          score: scoreOverflowMenuButton(element)
+        }))
+        .sort((a, b) => b.score - a.score)[0]?.element || null
     );
+  }
+
+  function scoreOverflowMenuButton(element) {
+    const rect = element.getBoundingClientRect();
+    const viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+    let score = 0;
+
+    if (rect.top < Math.min(140, viewportHeight * 0.2)) {
+      score += 4;
+    }
+
+    if (rect.left > viewportWidth * 0.5) {
+      score += 3;
+    }
+
+    if (rect.left > viewportWidth * 0.75) {
+      score += 2;
+    }
+
+    if (rect.top > viewportHeight * 0.65 && rect.left < viewportWidth * 0.35) {
+      score -= 6;
+    }
+
+    return score;
   }
 
   function findPromptInput() {
