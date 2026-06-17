@@ -5,6 +5,7 @@
   const NEXT_STEP_DELAY_MS = 0;
   const CLICK_COOLDOWN_MS = 0;
   const PENDING_SEND_RETRY_MS = 50;
+  const PENDING_SEND_TIMEOUT_MS = 3000;
   const SEND_BUTTON_HINTS = [
     "send",
     "submit",
@@ -220,6 +221,38 @@
     return rect.width > 0 && rect.height > 0;
   }
 
+  function hasVisibleStyle(element) {
+    if (!(element instanceof Element)) {
+      return false;
+    }
+
+    const style = getComputedStyle(element);
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0"
+    );
+  }
+
+  function hasVisibleDescendant(element) {
+    if (!(element instanceof Element)) {
+      return false;
+    }
+
+    return Array.from(element.querySelectorAll("*")).some(isVisible);
+  }
+
+  function isVisibleOrHasVisibleDescendant(element) {
+    return isVisible(element) || hasVisibleDescendant(element);
+  }
+
+  function isUsableModelPicker(element) {
+    return (
+      isModelPickerCandidate(element) &&
+      (isVisibleOrHasVisibleDescendant(element) || hasVisibleStyle(element))
+    );
+  }
+
   function isDisabled(element) {
     return (
       element.hasAttribute("disabled") ||
@@ -389,7 +422,11 @@
 
   function clickElement(element, reason) {
     const target = getClickTarget(element);
-    if (!target || !isVisible(target) || isDisabled(target)) {
+    if (
+      !target ||
+      (!isVisibleOrHasVisibleDescendant(target) && !isUsableModelPicker(target)) ||
+      isDisabled(target)
+    ) {
       return false;
     }
 
@@ -501,9 +538,11 @@
 
   function findModelPicker() {
     const hints = state.config.pickerHints.map(normalize).filter(Boolean);
-    const candidates = getVisibleInteractiveElements(
-      "button,[role='button'],[aria-haspopup]"
-    ).filter(isModelPickerCandidate);
+    const candidates = Array.from(
+      document.querySelectorAll("button,[role='button'],[aria-haspopup]")
+    )
+      .filter((element) => !isDisabled(element))
+      .filter(isUsableModelPicker);
 
     const ranked = candidates
       .map((element) => {
@@ -751,6 +790,13 @@
     );
   }
 
+  function pendingSendHasTimedOut() {
+    return (
+      state.pendingSendAt &&
+      Date.now() - state.pendingSendAt >= PENDING_SEND_TIMEOUT_MS
+    );
+  }
+
   function completePendingSend() {
     if (!state.pendingSendAt) {
       return false;
@@ -783,6 +829,12 @@
 
     state.pendingSendTimerId = window.setTimeout(() => {
       state.pendingSendTimerId = null;
+      if (pendingSendHasTimedOut()) {
+        clearPendingSend();
+        setStatus("released pending send after timeout");
+        return;
+      }
+
       if (completePendingSend()) {
         return;
       }

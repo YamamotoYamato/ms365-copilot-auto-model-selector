@@ -251,6 +251,13 @@
         promptInput.setAttribute("aria-label", "Ask anything");
       }
 
+      if (params.has("zeroPicker")) {
+        modelButton.style.width = "0";
+        modelButton.style.height = "0";
+        modelButton.style.padding = "0";
+        modelButton.style.border = "0";
+      }
+
       historyButtons.forEach((button) => {
         button.addEventListener("click", () => {
           document.documentElement.dataset.historyClicked = button.id;
