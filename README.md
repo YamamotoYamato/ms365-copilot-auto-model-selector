@@ -35,7 +35,7 @@ After updating the extension, reload it in `chrome://extensions`, then reload th
 - Permissions are limited to `https://m365.cloud.microsoft/*` and `storage`.
 - Prompts and conversation content are not sent externally. The extension only checks locally whether the input box is non-empty before send-time model selection.
 - When IME composition is active in the input box, the extension does not hold the send action, so conversion is not interrupted.
-- If the target model cannot be clicked, the extension keeps holding the send action so the message is not sent as Auto. Reload the page to cancel this state.
+- If the target model cannot be clicked, the extension keeps holding the send action for up to 3 seconds so the message is not sent as Auto. After 3 seconds, the hold state is released without sending the message.
 - The popup can configure automatic selection, the default selection path, and URL-specific selection paths. Changes are saved automatically.
 - To tolerate Microsoft UI changes, the extension looks for targets using visible text, ARIA attributes, and open menu state instead of fixed selectors.
 
