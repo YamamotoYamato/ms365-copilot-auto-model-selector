@@ -41,7 +41,7 @@ Microsoft 365 Copilot Chatの英語UIと日本語UIに対応しています。�
 
 ## ライセンス
 
-MIT Licenseです。詳しくは`LICENSE`を参照してください。
+[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) のもとでパブリックドメインとして提供します。SPDX-License-Identifier は `CC0-1.0` です。詳しくは`LICENSE`を参照してください。
 
 ## 更新履歴
 

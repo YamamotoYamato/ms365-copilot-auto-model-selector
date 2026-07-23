@@ -41,7 +41,7 @@ After updating the extension, reload it in `chrome://extensions`, then reload th
 
 ## License
 
-This project is released under the MIT License. See `LICENSE` for details.
+This project is dedicated to the public domain under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/). SPDX-License-Identifier: `CC0-1.0`. See `LICENSE` for details.
 
 ## Changelog
 
