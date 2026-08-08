@@ -31,7 +31,7 @@
   ];
   const DEFAULT_CONFIG = {
     enabled: true,
-    targetPath: "GPT, GPT 5.5 Think Deeper",
+    targetPath: "GPT, GPT 5.6 Think deeper",
     urlRules: [
       { urlIncludes: "/chat/agent/new", targetPath: "" },
       { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }

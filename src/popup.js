@@ -1,6 +1,6 @@
 const DEFAULTS = {
   enabled: true,
-  targetPath: "GPT, GPT 5.5 Think Deeper",
+  targetPath: "GPT, GPT 5.6 Think deeper",
   urlRules: [
     { urlIncludes: "/chat/agent/new", targetPath: "" },
     { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }
@@ -23,7 +23,7 @@ const TRANSLATIONS = {
     modelSectionLabel: "Model settings",
     targetPathLabel: "Selection path",
     targetPathHelp:
-      "Specify click targets in order, separated by commas. Example: GPT, GPT 5.5 Think Deeper",
+      "Specify click targets in order, separated by commas. Example: GPT, GPT 5.6 Think deeper",
     urlRulesSectionLabel: "URL-specific model settings",
     urlRulesTitle: "URL rules",
     urlRulesDescription:
@@ -69,7 +69,7 @@ const TRANSLATIONS = {
     modelSectionLabel: "モデル設定",
     targetPathLabel: "選択順",
     targetPathHelp:
-      "クリックする項目をカンマ区切りで順番に指定します。例: GPT, GPT 5.5 Think Deeper",
+      "クリックする項目をカンマ区切りで順番に指定します。例: GPT, GPT 5.6 Think deeper",
     urlRulesSectionLabel: "URL別モデル設定",
     urlRulesTitle: "URL別ルール",
     urlRulesDescription:

@@ -112,7 +112,7 @@
     <nav aria-label="Chat history">
       <button type="button">New chat</button>
       <button id="historyModel" type="button">Model Inquiry in Japanese</button>
-      <button id="historyTarget" type="button">GPT 5.5 Think Deeper notes</button>
+      <button id="historyTarget" type="button">GPT 5.6 Think deeper notes</button>
     </nav>
 
     <main>
@@ -183,6 +183,8 @@
           <button type="button" role="menuitemradio">GPT 5.4 Think Deeper</button>
           <button type="button" role="menuitemradio">GPT 5.5 Quick Response</button>
           <button type="button" role="menuitemradio">GPT 5.5 Think Deeper</button>
+          <button type="button" role="menuitemradio">GPT 5.6 Quick Response</button>
+          <button type="button" role="menuitemradio">GPT 5.6 Think deeper</button>
         </div>
       </div>
 
@@ -201,6 +203,8 @@
         <button type="button" role="menuitemradio">GPT 5.4 Think Deeper</button>
         <button type="button" role="menuitemradio">GPT 5.5 Quick Response</button>
         <button type="button" role="menuitemradio">GPT 5.5 Think Deeper</button>
+        <button type="button" role="menuitemradio">GPT 5.6 Quick Response</button>
+        <button type="button" role="menuitemradio">GPT 5.6 Think deeper</button>
       </div>
     </main>
 
@@ -278,7 +282,7 @@
       }
 
       function shortModelName(name) {
-        const match = name.match(/^(GPT\s+\d+(?:\.\d+)?)\s+Think Deeper$/);
+        const match = name.match(/^(GPT\s+\d+(?:\.\d+)?)\s+Think deeper$/i);
         return match ? `${match[1]} Think` : name;
       }
 
@@ -353,7 +357,7 @@
           if (
             shouldRevertOnce &&
             !revertedOnce &&
-            option.textContent.trim() === "GPT 5.5 Think Deeper"
+            option.textContent.trim() === "GPT 5.6 Think deeper"
           ) {
             revertedOnce = true;
             window.setTimeout(() => {
