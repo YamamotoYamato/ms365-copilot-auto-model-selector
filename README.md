@@ -2,7 +2,7 @@
 
 [日本語](README_JA.md)
 
-A Chrome extension that selects your preferred model right before sending a message in Microsoft 365 Copilot Chat. By default, it selects `GPT 5.5 Think Deeper`.
+A Chrome extension that selects your preferred model right before sending a message in Microsoft 365 Copilot Chat. By default, it selects `GPT 5.6 Think deeper`.
 
 ## Supported Languages
 
@@ -24,7 +24,7 @@ The extension is designed for Microsoft 365 Copilot Chat in English and Japanese
 
 The extension does not select a model on page load or DOM changes. In both wide and narrow layouts, model selection runs only immediately before sending.
 
-If the model menu path changes, update it from the extension popup. Specify click targets in order, separated by commas, such as `GPT, GPT 5.5 Think Deeper`. For a direct item such as `Think Deeper`, specify only that name.
+If the model menu path changes, update it from the extension popup. Specify click targets in order, separated by commas, such as `GPT, GPT 5.6 Think deeper`. For a direct item such as `Think Deeper`, specify only that name.
 
 To use a different model for specific URLs, configure `URL別ルール` in the popup. When the current URL contains the configured text, the URL-specific selection path is used instead of the default `選択順`. Rules are evaluated from top to bottom, and the first matching rule is used. Rules can be reordered with the up/down buttons. By default, URLs containing `/chat/agent/new` disable automatic model selection, and URLs containing `/chat/agent` select `Think Deeper`. Leaving `URL別の選択順` empty disables automatic model selection for that URL.
 
