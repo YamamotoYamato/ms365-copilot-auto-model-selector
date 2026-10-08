@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "MS365 Copilot Auto Model Selector",
-  "version": "0.1.10",
-  "version_name": "0.1.10",
+  "version": "0.1.11",
+  "version_name": "0.1.11",
   "description": "Selects your preferred model right before sending in Microsoft 365 Copilot Chat.",
   "permissions": [
     "storage"
@@ -18,7 +18,7 @@
       "js": [
         "src/content.js"
       ],
-      "run_at": "document_end"
+      "run_at": "document_start"
     }
   ],
   "action": {

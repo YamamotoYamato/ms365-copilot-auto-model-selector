@@ -31,7 +31,7 @@
   ];
   const DEFAULT_CONFIG = {
     enabled: true,
-    targetPath: "GPT, GPT 5.6 Think deeper",
+    targetPath: "GPT, GPT-5.6 Sol Think deeper",
     urlRules: [
       { urlIncludes: "/chat/agent/new", targetPath: "" },
       { urlIncludes: "/chat/agent", targetPath: "Think Deeper" }
@@ -70,6 +70,7 @@
     "[role='textbox'],textarea,input[type='text'],[contenteditable='true']";
   const state = {
     config: { ...DEFAULT_CONFIG },
+    isConfigLoaded: false,
     retryTimerId: null,
     isSelecting: false,
     lastClickAt: 0,
@@ -84,7 +85,7 @@
   };
 
   const isFixture =
-    document.documentElement.dataset.ms365AutoModelFixture === "true";
+    document.documentElement?.dataset.ms365AutoModelFixture === "true";
 
   function debug(...args) {
     console.debug(`[${EXTENSION_NAME}]`, ...args);
@@ -443,7 +444,9 @@
 
   function setStatus(status) {
     state.lastStatus = status;
-    document.documentElement.dataset.ms365AutoModelStatus = status;
+    if (document.documentElement) {
+      document.documentElement.dataset.ms365AutoModelStatus = status;
+    }
     debug(status);
   }
 
@@ -802,27 +805,27 @@
       return false;
     }
 
-    if (pendingSendHasClickedTarget()) {
-      const sendButton = findSendButton();
-      if (!sendButton) {
-        setStatus("waiting for send button");
-        return false;
-      }
-
-      const mode = state.pendingSendMode;
-      clearPendingSend();
-      state.isCompletingPendingSend = true;
-      try {
-        return clickElement(sendButton, `sent pending ${mode || "send"}`);
-      } finally {
-        state.isCompletingPendingSend = false;
-      }
-    }
-
-    return false;
+    return pendingSendHasClickedTarget() && sendPendingMessage();
   }
 
-  function schedulePendingSend(reason) {
+  function sendPendingMessage() {
+    const sendButton = findSendButton();
+    if (!sendButton) {
+      setStatus("waiting for send button");
+      return false;
+    }
+
+    const mode = state.pendingSendMode;
+    clearPendingSend();
+    state.isCompletingPendingSend = true;
+    try {
+      return clickElement(sendButton, `sent pending ${mode || "send"}`);
+    } finally {
+      state.isCompletingPendingSend = false;
+    }
+  }
+
+  function schedulePendingSend(reason, sendWithoutSelection = false) {
     if (!state.pendingSendAt || state.pendingSendTimerId) {
       return;
     }
@@ -835,14 +838,18 @@
         return;
       }
 
-      if (completePendingSend()) {
+      if (
+        sendWithoutSelection
+          ? sendPendingMessage()
+          : completePendingSend()
+      ) {
         return;
       }
 
-      if (!pendingSendHasClickedTarget()) {
+      if (!sendWithoutSelection && !pendingSendHasClickedTarget()) {
         runSelection(`${reason} retry`);
       }
-      schedulePendingSend(reason);
+      schedulePendingSend(reason, sendWithoutSelection);
     }, PENDING_SEND_RETRY_MS);
   }
 
@@ -857,6 +864,11 @@
       startPendingSend(mode);
     }
 
+    if (!state.isConfigLoaded) {
+      setStatus("holding send until settings loaded");
+      return;
+    }
+
     setStatus("holding send until target clicked");
     runSelection(`${mode} send guard`);
     schedulePendingSend(`${mode} send guard`);
@@ -866,9 +878,9 @@
     const input = resolvePromptInput(event.target);
     if (
       !input ||
-      !state.config.enabled ||
       !shouldRunOnThisPage() ||
-      isSelectionDisabledForCurrentUrl() ||
+      (state.isConfigLoaded &&
+        (!state.config.enabled || isSelectionDisabledForCurrentUrl())) ||
       !isPlainEnter(event) ||
       event.isComposing ||
       state.isPromptComposing ||
@@ -884,9 +896,9 @@
 
   function holdSendClickUntilModelSelected(event) {
     if (
-      !state.config.enabled ||
       !shouldRunOnThisPage() ||
-      isSelectionDisabledForCurrentUrl() ||
+      (state.isConfigLoaded &&
+        (!state.config.enabled || isSelectionDisabledForCurrentUrl())) ||
       state.isCompletingPendingSend
     ) {
       return;
@@ -943,6 +955,7 @@
 
   function runSelection(reason = "scheduled") {
     if (
+      !state.isConfigLoaded ||
       !state.config.enabled ||
       !shouldRunOnThisPage() ||
       isSelectionDisabledForCurrentUrl() ||
@@ -1041,13 +1054,14 @@
   }
 
   async function init() {
-    state.config = await loadConfig();
-
     for (const eventName of ["compositionstart", "compositionend"]) {
       document.addEventListener(eventName, markPromptActivity, true);
     }
-    document.addEventListener("keydown", holdEnterUntilModelSelected, true);
+    window.addEventListener("keydown", holdEnterUntilModelSelected, true);
     document.addEventListener("click", holdSendClickUntilModelSelected, true);
+
+    state.config = await loadConfig();
+    state.isConfigLoaded = true;
 
     if (globalThis.chrome?.storage?.onChanged) {
       chrome.storage.onChanged.addListener((changes, area) => {
@@ -1064,6 +1078,15 @@
     }
 
     setStatus("waiting for send");
+    if (state.pendingSendAt) {
+      if (state.config.enabled && !isSelectionDisabledForCurrentUrl()) {
+        startSendGuard(state.pendingSendMode);
+      } else {
+        if (!sendPendingMessage()) {
+          schedulePendingSend("replaying pending send", true);
+        }
+      }
+    }
   }
 
   window.__MS365CopilotAutoModel = {
